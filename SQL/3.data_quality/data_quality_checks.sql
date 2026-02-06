@@ -99,3 +99,13 @@ FROM stg.fact_table f
 LEFT JOIN stg.trans_dim t
 ON f.payment_key = t.payment_key
 WHERE t.payment_key IS NULL;
+
+SELECT
+	SUM(CASE WHEN quantity IS NULL THEN 1 ELSE 0 END) AS null_qty,
+	SUM(CASE WHEN quantity <=0 THEN 1 ELSE 0 END) AS non_positive_qty,
+	SUM(CASE WHEN unit_price < 0 THEN 1 ELSE 0 END) AS negative_unit_price,
+	SUM(CASE WHEN total_price < 0 THEN 1 ELSE 0 END) AS negative_total_price,
+	SUM(CASE WHEN quantity IS NOT NULL AND unit_price IS NOT NULL AND total_price
+		IS NOT NULL AND ABS(total_price-(quantity*unit_price)) > 0.01 THEN 1 ELSE 0 END)
+		AS total_mismatch
+FROM stg.fact_table;
